@@ -30,7 +30,9 @@ public class UserInfo {
         this.createdAt = LocalDateTime.now();
     }
 
+    // OneToOne + UserLogin -> 1:1 연관관계 인식
     @OneToOne(fetch = FetchType.LAZY)
+    // UserLogin ID를 어떤 컬럼명으로 도입할 것인가
     @JoinColumn(name = "login_id", unique = true, nullable = false)
     private UserLogin userLogin;
 
