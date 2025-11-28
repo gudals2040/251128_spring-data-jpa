@@ -1,8 +1,10 @@
 package kr.java.jpa.service;
 
 import kr.java.jpa.model.entity.Post;
+import kr.java.jpa.model.entity.PostLike;
 import kr.java.jpa.model.entity.UserInfo;
 import kr.java.jpa.model.entity.UserLogin;
+import kr.java.jpa.model.repository.PostLikeRepository;
 import kr.java.jpa.model.repository.PostRepository;
 import kr.java.jpa.model.repository.UserInfoRepository;
 import kr.java.jpa.model.repository.UserLoginRepository;
@@ -42,5 +44,35 @@ public class PostService {
     // 검색
     public List<Post> getPostsByTitle(String keyword) {
         return postRepository.findByTitleContainingOrderByCreatedAtDesc(keyword);
+    }
+
+    private final PostLikeRepository postLikeRepository;
+
+    // 좋아요 토글 (M:N) ON <-> OFF.
+    @Transactional
+    public boolean toggleLike(Long userInfoId, Long postId) {
+        // 존재 여부
+        UserInfo userInfo = userInfoRepository.findById(userInfoId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다"));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다"));
+        // Like
+        if (isLiked(userInfoId, postId)) {
+            // 좋아요 취소
+            postLikeRepository.deleteByUserInfoIdAndPostId(userInfoId, postId);
+            post.decreaseLikeCount(); // post repo를 안써도 자동으로 dirty checking
+            return false; // 좋아요 상태가 false로 변환
+        } else {
+            // 좋아요 추가
+            PostLike postLike = PostLike.createPostLike(userInfo, post);
+            postLikeRepository.save(postLike);
+            post.increaseLikeCount();
+            return true;
+        }
+    }
+
+    public boolean isLiked(Long userInfoId, Long postId) {
+        return postLikeRepository
+                .existsUserInfoIdAndPostId(userInfoId, postId);
     }
 }

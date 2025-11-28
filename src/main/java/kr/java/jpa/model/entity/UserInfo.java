@@ -59,4 +59,8 @@ public class UserInfo {
     // 1:N 관계
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Post> posts = new ArrayList<>();
+
+    // N:M 관계
+    @OneToMany(mappedBy = "userInfo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PostLike> postLikes = new ArrayList<>();
 }

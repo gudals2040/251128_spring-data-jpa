@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "post")
@@ -45,6 +47,21 @@ public class Post {
         this.author = author;
         if (author != null) {
             author.getPosts().add(this);
+        }
+    }
+
+    // M:N <- 중간 엔티티
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private final List<PostLike> postLikeList = new ArrayList<>();
+
+    // 비즈니스 로직 (count)
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
         }
     }
 }

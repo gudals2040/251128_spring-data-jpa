@@ -4,6 +4,7 @@ import kr.java.jpa.model.entity.Post;
 import kr.java.jpa.model.entity.UserLogin;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,4 +21,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     // 제목으로 검색 -> LIKE %keyword%
     List<Post> findByTitleContainingOrderByCreatedAtDesc(String keyword);
+
+    // 게시글 상세 조회 (게시글 + 작성자 + 좋아요한 사용자 목록)
+    @Query("""
+    SELECT DISTINCT p FROM Post p
+        JOIN FETCH p.author
+        LEFT JOIN FETCH p.postLikeList pl
+        LEFT JOIN FETCH pl.userInfo
+        WHERE p.id = :id
+    """)
+    Optional<Post> findByIdWithDetails(@Param("id") Long id);
 }
